@@ -21,7 +21,7 @@ function App() {
     <div className="px-8 flex items-center justify-center bg-[url('/src/assets/chat.jpg')] bg-no-repeat bg-cover w-full h-screen">
       {!showChat ? (
         <div className="w-fit flex flex-col justify-center items-center text-center space-y-4 bg-white text-black rounded-xl py-8 px-6 shadow-lg">
-          <h1 className="text-3xl font-bold mb-4">Welcome to SocketGram</h1>
+          <h1 className="text-3xl font-bold mb-4">Welcome to Socket-Chat</h1>
           <input
             type="text"
             placeholder="Your nickname"
