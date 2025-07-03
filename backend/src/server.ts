@@ -4,31 +4,60 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Server, Socket } from "socket.io";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import pool from "./db";
+import authRoutes from "./routes/auth";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
+const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
-app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
+// Middleware
+app.use(cors({
+  origin: CORS_ORIGIN,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
+app.use("/auth", authRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Chat API is running");
 });
 
+// Create HTTP and WebSocket server
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
     origin: CORS_ORIGIN,
     methods: ["GET", "POST"],
+    credentials: true, // Cookies & auth
   },
 });
 
-// Keep track of users
+// Socket authentication
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  console.log("Received token:", token);
+
+  if (!token) {
+    return next(new Error("Token missing"));
+  }
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as { userId: number };
+    socket.data.userId = payload.userId;
+    next();
+  } catch (err) {
+    console.error("Socket auth failed:", err);
+    next(new Error("Unauthorized"));
+  }
+});
+
 const userMap = new Map<string, { username: string; room: string }>();
 
 io.on("connection", (socket: Socket) => {
@@ -39,8 +68,9 @@ io.on("connection", (socket: Socket) => {
     socket.join(room);
     userMap.set(socket.id, { username, room });
 
-    console.log(`User with ID: ${socket.id} (${username}) joined room: ${room}`);
+    console.log(`User ${username} joined room: ${room}`);
 
+    // Notify room
     socket.to(room).emit("receive_message", {
       room,
       id: "system",
@@ -48,6 +78,22 @@ io.on("connection", (socket: Socket) => {
       message: `${username} has joined the chat.`,
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     });
+
+    // Send chat history
+    pool
+      .query(
+        `SELECT content AS message, sent_at AS time, u.username AS author
+         FROM messages m
+         JOIN users u ON m.author_id = u.id
+         WHERE room = $1
+         ORDER BY sent_at ASC
+         LIMIT 50`,
+        [room]
+      )
+      .then((result) => {
+        socket.emit("chat_history", result.rows);
+      })
+      .catch((err) => console.error("Error loading chat history:", err));
   });
 
   socket.on("send_message", (data: {
@@ -57,6 +103,13 @@ io.on("connection", (socket: Socket) => {
     message: string;
     time: string;
   }) => {
+    pool
+      .query(
+        "INSERT INTO messages (room, author_id, content) VALUES ($1, $2, $3)",
+        [data.room, socket.data.userId, data.message]
+      )
+      .catch((err) => console.error("Error saving message:", err));
+
     socket.to(data.room).emit("receive_message", data);
   });
 
