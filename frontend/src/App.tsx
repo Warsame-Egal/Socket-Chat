@@ -3,7 +3,8 @@ import { io } from "socket.io-client";
 import Chat from "./components/Chat";
 
 const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
-const socket = io(VITE_SERVER_URL);
+const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, "$1");
+const socket = io(VITE_SERVER_URL, { auth: { token } });
 
 function App() {
   const [username, setUsername] = useState("");
