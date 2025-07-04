@@ -5,8 +5,10 @@ import cookieParser from "cookie-parser";
 import { Server, Socket } from "socket.io";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import roomRoutes from "./routes/rooms";
 import authRoutes from "./routes/auth";
 import ChatService from "./services/ChatService";
+import RoomService from "./services/RoomService";
 
 dotenv.config();
 
@@ -23,6 +25,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use("/auth", authRoutes);
+app.use("/rooms", roomRoutes);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Chat API is running");
@@ -61,12 +64,14 @@ io.use((socket, next) => {
 const userMap = new Map<string, { username: string; room: string }>();
 const roomUsers = new Map<string, Set<string>>();
 const chatService = new ChatService();
+const roomService = new RoomService();
 
 io.on("connection", (socket: Socket) => {
   console.log(`User Connected: ${socket.id}`);
 
   socket.on("join_room", (data: { room: string; username: string }) => {
     const { room, username } = data;
+    roomService.createRoom(room).catch(() => {});
     socket.join(room);
     userMap.set(socket.id, { username, room });
 
