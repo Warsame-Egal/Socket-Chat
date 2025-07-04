@@ -65,7 +65,7 @@ async function init() {
     }
   }
   console.log('Redis initialization complete');
-  client.disconnect();
+  await client.quit();
 }
 
 init().catch((err) => {
