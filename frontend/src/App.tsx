@@ -13,6 +13,21 @@ function App() {
   const [room, setRoom] = useState("");
   const [showChat, setShowChat] = useState(false);
 
+    const logout = async () => {
+    await fetch(`${VITE_SERVER_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    localStorage.removeItem("token");
+    setAuthenticated(false);
+    setShowChat(false);
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+    }
+  };
+
+
     useEffect(() => {
     if (authenticated) {
       const token = localStorage.getItem("token") || "";
@@ -41,8 +56,13 @@ function App() {
 
 
   return (
-    <div className="px-8 flex items-center justify-center bg-[url('/src/assets/chat.jpg')] bg-no-repeat bg-cover w-full h-screen">
-      {!showChat ? (
+    <div className="relative px-8 flex items-center justify-center bg-[url('/src/assets/chat.jpg')] bg-no-repeat bg-cover w-full h-screen">
+      <button
+        onClick={logout}
+        className="absolute top-4 right-4 p-2 bg-red-500 hover:bg-red-700 rounded-md text-white"
+      >
+        Logout
+      </button>      {!showChat ? (
         <div className="w-fit flex flex-col justify-center items-center text-center space-y-4 bg-white text-black rounded-xl py-8 px-6 shadow-lg">
           <h1 className="text-3xl font-bold mb-4">Welcome to Socket-Chat</h1>
           <input
