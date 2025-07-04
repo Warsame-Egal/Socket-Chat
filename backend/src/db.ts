@@ -9,7 +9,7 @@ const pool = new Pool({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "postgres",
   password: process.env.DB_PASSWORD || "password",
-  database: process.env.DB_NAME || "chat_app",
+  database: process.env.DB_NAME || "socketchat",
   port: parseInt(process.env.DB_PORT || "5432"),
 });
 

@@ -78,7 +78,9 @@ io.on("connection", (socket: Socket) => {
   // User is joining a chat room
   socket.on("join_room", (data: { room: string; username: string }) => {
     const { room, username } = data;
-    roomService.createRoom(room).catch(() => {});
+        roomService
+      .createRoom(room)
+      .catch((err) => console.error("Error creating room:", err));
     socket.join(room);
     userMap.set(socket.id, { username, room });
 
