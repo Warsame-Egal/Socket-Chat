@@ -1,3 +1,5 @@
+// Main server file that sets up Express and Socket.IO
+// and wires up all API and WebSocket handlers.
 import express, { Request, Response } from "express";
 import http from "http";
 import cors from "cors";
@@ -13,11 +15,13 @@ import RoomService from "./services/RoomService";
 dotenv.config();
 
 const app = express();
+// Pull configuration from environment variables with sensible defaults
 const PORT = process.env.PORT || 5000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
 // Middleware
+// ----- Express middleware configuration -----
 app.use(cors({
   origin: CORS_ORIGIN,
   credentials: true,
@@ -43,6 +47,7 @@ const io = new Server(server, {
 });
 
 // Socket authentication
+// Intercept socket connections and validate JWT tokens
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   console.log("Received token:", token);
@@ -66,9 +71,11 @@ const roomUsers = new Map<string, Set<string>>();
 const chatService = new ChatService();
 const roomService = new RoomService();
 
+// Handle a new client connection and register event listeners
 io.on("connection", (socket: Socket) => {
   console.log(`User Connected: ${socket.id}`);
 
+  // User is joining a chat room
   socket.on("join_room", (data: { room: string; username: string }) => {
     const { room, username } = data;
     roomService.createRoom(room).catch(() => {});
@@ -102,6 +109,7 @@ io.on("connection", (socket: Socket) => {
     io.to(room).emit("user_list", Array.from(users));
   });
 
+  // Broadcast a chat message to the room
   socket.on("send_message", (data: {
     room: string;
     id: string;
@@ -116,10 +124,12 @@ io.on("connection", (socket: Socket) => {
     socket.to(data.room).emit("receive_message", data);
   });
 
+    // Notify others that a user is typing
     socket.on("typing", (data: { room: string; username: string }) => {
     socket.to(data.room).emit("typing", data.username);
   });
 
+  // Clean up when a user disconnects
   socket.on("disconnect", () => {
     const user = userMap.get(socket.id);
     if (user) {
@@ -149,6 +159,7 @@ io.on("connection", (socket: Socket) => {
   });
 });
 
+// Start the HTTP/WebSocket server
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

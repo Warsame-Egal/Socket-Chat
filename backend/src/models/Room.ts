@@ -1,3 +1,4 @@
+// Chat room details stored in the database
 export interface Room {
   id: number;
   name: string;

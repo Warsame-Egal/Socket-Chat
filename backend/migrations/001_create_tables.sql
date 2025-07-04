@@ -1,3 +1,4 @@
+-- Base user and message tables
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,

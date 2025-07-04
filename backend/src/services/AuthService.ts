@@ -1,3 +1,4 @@
+// Business logic for registering and logging in users
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import UserRepository from '../repositories/UserRepository';
@@ -5,8 +6,10 @@ import UserRepository from '../repositories/UserRepository';
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
 export default class AuthService {
+  // Expose registration and login helpers
   constructor(private userRepo = new UserRepository()) {}
 
+  // Create a new user record with hashed password
   async register(username: string, password: string): Promise<void> {
     const existing = await this.userRepo.findByUsername(username);
     if (existing) {
@@ -16,6 +19,7 @@ export default class AuthService {
     await this.userRepo.create(username, hash);
   }
 
+  // Verify user credentials and return a JWT
   async login(username: string, password: string): Promise<{ token: string }> {
     const user = await this.userRepo.findByUsername(username);
     if (!user) {

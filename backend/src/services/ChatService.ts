@@ -1,13 +1,16 @@
+// Provides higher level chat operations used by WebSocket handlers
 import MessageRepository from '../repositories/MessageRepository';
 import pool from '../db';
 
 export default class ChatService {
   constructor(private messageRepo = new MessageRepository()) {}
 
+  // Persist a chat message
   async saveMessage(room: string, authorId: number, content: string) {
     await this.messageRepo.create(room, authorId, content);
   }
 
+  // Retrieve the last 50 messages from a room
   async getHistory(room: string) {
     const result = await pool.query(
       `SELECT content AS message, sent_at AS time, u.username AS author

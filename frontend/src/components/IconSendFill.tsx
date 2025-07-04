@@ -1,4 +1,4 @@
-
+// Wrapper around a send icon with optional click handler
 import { HiPaperAirplane } from "react-icons/hi";
 import { FC } from "react";
 

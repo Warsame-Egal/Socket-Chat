@@ -1,9 +1,10 @@
+// Main application component containing authentication logic
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import Chat from "./components/Chat";
 import Auth from "./components/Auth";
 
-
+// Base URL for the backend API
 const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
   const [room, setRoom] = useState("");
   const [showChat, setShowChat] = useState(false);
 
+    // Log the user out and reset state
     const logout = async () => {
     await fetch(`${VITE_SERVER_URL}/auth/logout`, {
       method: "POST",
@@ -27,7 +29,7 @@ function App() {
     }
   };
 
-
+    // Connect to the WebSocket server when authenticated
     useEffect(() => {
     if (authenticated) {
       const token = localStorage.getItem("token") || "";
@@ -39,6 +41,7 @@ function App() {
     }
   }, [authenticated]);
 
+  // Join the specified chat room
   const joinRoom = () => {
     if (username !== "" && room !== "" && socket) {
       socket.emit("join_room", { room, username });

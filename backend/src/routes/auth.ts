@@ -1,9 +1,11 @@
+// Express routes related to authentication
 import { Router } from 'express';
 import AuthService from '../services/AuthService';
 
 const router = Router();
 const authService = new AuthService();
 
+// Create a new user account
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
 
@@ -24,6 +26,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Authenticate an existing user
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
@@ -38,6 +41,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Clear the auth cookie and log the user out
 router.post('/logout', (_req, res) => {
   res.clearCookie('token');
   res.json({ message: 'Logged out' });

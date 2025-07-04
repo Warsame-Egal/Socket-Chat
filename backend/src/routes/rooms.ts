@@ -1,9 +1,11 @@
+// Express routes for managing chat rooms
 import { Router } from 'express';
 import RoomService from '../services/RoomService';
 
 const router = Router();
 const roomService = new RoomService();
 
+// Retrieve a list of rooms
 router.get('/', async (_req, res) => {
   try {
     const rooms = await roomService.listRooms();
@@ -14,6 +16,7 @@ router.get('/', async (_req, res) => {
   }
 });
 
+// Create a new room
 router.post('/', async (req, res) => {
   const { name } = req.body;
   if (!name) {
@@ -33,6 +36,7 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Remove a room by id
 router.delete('/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) {

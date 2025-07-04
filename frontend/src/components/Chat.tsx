@@ -1,14 +1,17 @@
+// Component that renders the chat UI and handles messages
 import { useEffect, useState } from "react";
 import { Socket } from "socket.io-client";
 import ScrollToBottom from "react-scroll-to-bottom";
 import IconSendFill from "./IconSendFill";
 
+// Props expected by the Chat component
 interface Props {
   socket: Socket;
   username: string;
   room: string;
 }
 
+// Shape of a message exchanged over the socket
 interface Message {
   room: string;
   id: string | undefined;
@@ -21,6 +24,7 @@ const Chat = ({ socket, username, room }: Props) => {
   const [currentMessage, setCurrentMessage] = useState("");
   const [messageList, setMessageList] = useState<Message[]>([]);
 
+  // Emit the current message to the server
   const sendMessage = async () => {
     if (currentMessage.trim() !== "") {
       const now = new Date();
@@ -41,6 +45,7 @@ const Chat = ({ socket, username, room }: Props) => {
     }
   };
 
+  // Listen for incoming messages
   useEffect(() => {
     socket.on("receive_message", (data: Message) => {
       setMessageList((prev) => [...prev, data]);

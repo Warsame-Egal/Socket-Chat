@@ -1,9 +1,10 @@
+// Simple login/register form component
 import { useState } from "react";
 
 interface Props {
   onAuthSuccess: () => void;
 }
-
+// Endpoint for authentication requests
 const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
 
 const Auth = ({ onAuthSuccess }: Props) => {
@@ -12,6 +13,7 @@ const Auth = ({ onAuthSuccess }: Props) => {
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Send login or registration request to the server
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
