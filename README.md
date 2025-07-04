@@ -33,6 +33,28 @@ cd backend
 npm install
 ```
 
+```bash
+cp .env.example .env
+```
+
+Set the Redis connection string in `.env` (if different from the default):
+
+```env
+REDIS_URL=redis://localhost:6379
+```
+
+Optionally customize the demo users seeded on initialization:
+
+```env
+DEMO_USERS=luffy:luffypass,zoro:zoropass
+```
+
+#### Initialize demo data in Redis:
+
+```bash
+npm run init-redis
+```
+
 #### Start the backend server:
 
 ```bash
