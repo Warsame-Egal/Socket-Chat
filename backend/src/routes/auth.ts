@@ -1,68 +1,46 @@
-import { Router } from "express";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import pool from "../db";
+import { Router } from 'express';
+import AuthService from '../services/AuthService';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+const authService = new AuthService();
 
-router.post("/register", async (req, res) => {
+router.post('/register', async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    res.status(400).json({ message: "Username and password are required" });
+    res.status(400).json({ message: 'Username and password are required' });
     return;
   }
   try {
-    // Check for existing username
-    const existing = await pool.query(
-      "SELECT 1 FROM users WHERE username = $1",
-      [username]
-    );
-    if (existing.rows.length > 0) {
-      res.status(409).json({ message: "Username already taken" });
-      return;
-    }
-
-    const hash = await bcrypt.hash(password, 10);
-    await pool.query(
-      "INSERT INTO users (username, password_hash) VALUES ($1, $2)",
-      [username, hash]
-    );
+    await authService.register(username, password);
     res.sendStatus(201);
   } catch (err: any) {
-    // Unique violation code from PostgreSQL
-    if (err.code === "23505") {
-      res.status(409).json({ message: "Username already taken" });
+    if (err.message === 'Username already taken') {
+      res.status(409).json({ message: err.message });
     } else {
-      console.error("Registration failed:", err);
-      res.status(500).json({ message: "Server error" });
+      console.error('Registration failed:', err);
+      res.status(500).json({ message: 'Server error' });
     }
   }
 });
 
-router.post("/login", async (req, res) => {
+router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
-    res.status(400).json({ message: "Username and password are required" });
+    res.status(400).json({ message: 'Username and password are required' });
     return;
   }
-  const result = await pool.query(
-    "SELECT * FROM users WHERE username = $1",
-    [username]
-  );
-  const user = result.rows[0];
-  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-    res.status(401).json({ message: "Invalid credentials" });
-    return;
+  try {
+    const { token } = await authService.login(username, password);
+    res.cookie('token', token, { httpOnly: true }).json({ token });
+  } catch {
+    res.status(401).json({ message: 'Invalid credentials' });
   }
-  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "1h" });
-  res.cookie("token", token, { httpOnly: true }).json({ token });
 });
 
-router.post("/logout", (req, res) => {
-  res.clearCookie("token");
-  res.json({ message: "Logged out" });
+router.post('/logout', (_req, res) => {
+  res.clearCookie('token');
+  res.json({ message: 'Logged out' });
 });
 
 export default router;

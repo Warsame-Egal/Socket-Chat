@@ -5,8 +5,8 @@ import cookieParser from "cookie-parser";
 import { Server, Socket } from "socket.io";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import pool from "./db";
 import authRoutes from "./routes/auth";
+import ChatService from "./services/ChatService";
 
 dotenv.config();
 
@@ -60,6 +60,7 @@ io.use((socket, next) => {
 
 const userMap = new Map<string, { username: string; room: string }>();
 const roomUsers = new Map<string, Set<string>>();
+const chatService = new ChatService();
 
 io.on("connection", (socket: Socket) => {
   console.log(`User Connected: ${socket.id}`);
@@ -85,19 +86,11 @@ io.on("connection", (socket: Socket) => {
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     });
 
-    // Send chat history
-    pool
-      .query(
-        `SELECT content AS message, sent_at AS time, u.username AS author
-         FROM messages m
-         JOIN users u ON m.author_id = u.id
-         WHERE room = $1
-         ORDER BY sent_at ASC
-         LIMIT 50`,
-        [room]
-      )
-      .then((result) => {
-        socket.emit("chat_history", result.rows);
+    // Send chat history using service
+    chatService
+      .getHistory(room)
+      .then((history) => {
+        socket.emit("chat_history", history);
       })
       .catch((err) => console.error("Error loading chat history:", err));
       
@@ -111,11 +104,8 @@ io.on("connection", (socket: Socket) => {
     message: string;
     time: string;
   }) => {
-    pool
-      .query(
-        "INSERT INTO messages (room, author_id, content) VALUES ($1, $2, $3)",
-        [data.room, socket.data.userId, data.message]
-      )
+    chatService
+      .saveMessage(data.room, socket.data.userId, data.message)
       .catch((err) => console.error("Error saving message:", err));
 
     socket.to(data.room).emit("receive_message", data);
