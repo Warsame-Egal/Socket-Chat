@@ -23,12 +23,15 @@ const Auth = ({ onAuthSuccess }: Props) => {
         credentials: "include",
         body: JSON.stringify({ username, password }),
       });
+      
+      const data = await res.json().catch(() => null);
+
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.message || "Request failed");
+        setError(data?.message || "Request failed");
+        return;
       }
-      const data = await res.json().catch(() => ({}));
-      if (data.token) {
+
+      if (data?.token) {
         localStorage.setItem("token", data.token as string);
       }
       setUsername("");

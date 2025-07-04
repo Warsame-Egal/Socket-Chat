@@ -47,6 +47,12 @@ npm run dev
 cd ../frontend
 ```
 
+Copy the example environment variables file:
+
+```bash
+cp .env.example .env
+```
+
 #### Install dependencies:
 
 ```bash

@@ -59,6 +59,7 @@ io.use((socket, next) => {
 });
 
 const userMap = new Map<string, { username: string; room: string }>();
+const roomUsers = new Map<string, Set<string>>();
 
 io.on("connection", (socket: Socket) => {
   console.log(`User Connected: ${socket.id}`);
@@ -67,6 +68,11 @@ io.on("connection", (socket: Socket) => {
     const { room, username } = data;
     socket.join(room);
     userMap.set(socket.id, { username, room });
+
+    // Track users per room
+    const users = roomUsers.get(room) || new Set<string>();
+    users.add(username);
+    roomUsers.set(room, users);
 
     console.log(`User ${username} joined room: ${room}`);
 
@@ -94,6 +100,8 @@ io.on("connection", (socket: Socket) => {
         socket.emit("chat_history", result.rows);
       })
       .catch((err) => console.error("Error loading chat history:", err));
+      
+    io.to(room).emit("user_list", Array.from(users));
   });
 
   socket.on("send_message", (data: {
@@ -113,6 +121,10 @@ io.on("connection", (socket: Socket) => {
     socket.to(data.room).emit("receive_message", data);
   });
 
+    socket.on("typing", (data: { room: string; username: string }) => {
+    socket.to(data.room).emit("typing", data.username);
+  });
+
   socket.on("disconnect", () => {
     const user = userMap.get(socket.id);
     if (user) {
@@ -127,6 +139,15 @@ io.on("connection", (socket: Socket) => {
       });
 
       userMap.delete(socket.id);
+      
+      const users = roomUsers.get(room);
+      if (users) {
+        users.delete(username);
+        if (users.size === 0) {
+          roomUsers.delete(room);
+        }
+        io.to(room).emit("user_list", Array.from(users));
+      }
     }
 
     console.log(`User Disconnected: ${socket.id}`);

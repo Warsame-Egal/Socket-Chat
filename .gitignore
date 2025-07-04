@@ -3,6 +3,7 @@ dist/
 .vite/
 .env
 .env.*.local
+frontend/.env
 .vscode/
 .idea/
 npm-debug.log*
