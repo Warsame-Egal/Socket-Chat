@@ -7,6 +7,7 @@ A real-time chat application built with Node.js, TypeScript, Express, Socket.IO,
 - Real-time messaging with Socket.IO
 - Responsive front-end using React and Tailwind CSS
 - Backend built with Node.js Express and TypeScript
+- Redis-backed caching for rooms, users and chat history
 
 ---
 
