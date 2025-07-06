@@ -14,6 +14,7 @@ interface Props {
   joinRoom: (navigate?: (path: string) => void) => void;
   logout: () => void;
   handleSelectRoom: (name: string, navigate?: (path: string) => void) => void;
+  leaveRoom: () => void;
 }
 
 const ChatRoute = ({
@@ -26,6 +27,7 @@ const ChatRoute = ({
   joinRoom,
   logout,
   handleSelectRoom,
+  leaveRoom,
 }: Props) => {
   const { roomId } = useParams();
   const navigate = useNavigate();
@@ -46,6 +48,7 @@ const ChatRoute = ({
         setRoom={setRoom}
         showChat={showChat}
         joinRoom={() => joinRoom(navigate)}
+        leaveRoom={leaveRoom}
       />
     </Layout>
   );

@@ -9,6 +9,7 @@ interface Props {
   socket: Socket;
   username: string;
   room: string;
+  onLeave: () => void;
 }
 
 // Shape of a message exchanged over the socket
@@ -26,7 +27,7 @@ interface HistoryMessage {
   time: string | Date;
 }
 
-const Chat = ({ socket, username, room }: Props) => {
+const Chat = ({ socket, username, room, onLeave }: Props) => {
   const [currentMessage, setCurrentMessage] = useState("");
   const [messageList, setMessageList] = useState<Message[]>([]);
   const [userList, setUserList] = useState<string[]>([]);
@@ -97,6 +98,12 @@ const Chat = ({ socket, username, room }: Props) => {
         {/* Header */}
         <div className="text-center font-bold text-xl border-b border-gray-300 pb-3 mb-3">
           Room: <span className="text-blue-600">{room}</span>
+                    <button
+            onClick={onLeave}
+            className="ml-2 text-sm text-red-600 underline"
+          >
+            Leave
+          </button>
           <div className="text-sm font-normal text-gray-500 mt-1">
             Users: {userList.join(', ')}
           </div>

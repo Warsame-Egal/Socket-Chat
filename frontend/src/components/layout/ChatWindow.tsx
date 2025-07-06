@@ -9,6 +9,7 @@ interface Props {
   setRoom: (room: string) => void;
   showChat: boolean;
   joinRoom: () => void;
+  leaveRoom: () => void;
 }
 
 const ChatWindow = ({
@@ -19,6 +20,7 @@ const ChatWindow = ({
   setRoom,
   showChat,
   joinRoom,
+  leaveRoom,
 }: Props) => {
   return !showChat ? (
     <div className="w-fit flex flex-col justify-center items-center text-center space-y-4 bg-white text-black rounded-xl py-8 px-6 shadow-lg">
@@ -45,7 +47,9 @@ const ChatWindow = ({
       </button>
     </div>
   ) : (
-    socket && <Chat socket={socket} username={username} room={room} />
+    socket && (
+      <Chat socket={socket} username={username} room={room} onLeave={leaveRoom} />
+    )
   );
 };
 

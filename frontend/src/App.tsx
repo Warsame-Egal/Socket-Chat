@@ -12,6 +12,19 @@ function App() {
   const [username, setUsername] = useState("");
   const [room, setRoom] = useState("");
   const [showChat, setShowChat] = useState(false);
+  
+  const leaveRoom = async () => {
+    if (socket && room) {
+      socket.emit("leave_room", { room, username });
+      await fetch(`${VITE_SERVER_URL}/rooms/${room}/leave`, {
+        method: "POST",
+        credentials: "include",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      }).catch(() => {});
+      setShowChat(false);
+      setRoom("");
+    }
+  };
 
   const logout = async () => {
     await fetch(`${VITE_SERVER_URL}/auth/logout`, {
@@ -84,6 +97,7 @@ function App() {
                 joinRoom={joinRoom}
                 logout={logout}
                 handleSelectRoom={handleSelectRoom}
+                leaveRoom={leaveRoom}
               />
             ) : (
               <Navigate to="/login" replace />
@@ -103,6 +117,7 @@ function App() {
                 joinRoom={joinRoom}
                 logout={logout}
                 handleSelectRoom={handleSelectRoom}
+                leaveRoom={leaveRoom}
               />
             ) : (
               <Navigate to="/login" replace />

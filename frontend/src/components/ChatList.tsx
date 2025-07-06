@@ -24,8 +24,17 @@ const ChatList = ({ onSelect, activeRoom }: Props) => {
   const [rooms, setRooms] = useState<Room[]>([]);
 
   useEffect(() => {
-    fetch(`${VITE_SERVER_URL}/rooms/latest`)
-      .then((res) => res.json())
+    const token = localStorage.getItem("token");
+    fetch(`${VITE_SERVER_URL}/rooms/latest`, {
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(res.statusText);
+        }
+        return res.json();
+      })
       .then((data) => setRooms(data))
       .catch((err) => console.error("Failed to load rooms", err));
   }, []);

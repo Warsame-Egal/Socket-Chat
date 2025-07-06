@@ -52,7 +52,7 @@ io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   console.log("Received token:", token);
 
-  if (!token) {
+   if (!token) {
     return next(new Error("Token missing"));
   }
 
@@ -76,11 +76,12 @@ io.on("connection", (socket: Socket) => {
   console.log(`User Connected: ${socket.id}`);
 
   // User is joining a chat room
-  socket.on("join_room", (data: { room: string; username: string }) => {
+  socket.on("join_room", async (data: { room: string; username: string }) => {
     const { room, username } = data;
-        roomService
-      .createRoom(room)
+    roomService
+      .createRoom(room, socket.data.userId)
       .catch((err) => console.error("Error creating room:", err));
+    await roomService.addMember(room, socket.data.userId);
     socket.join(room);
     userMap.set(socket.id, { username, room });
 
@@ -126,9 +127,28 @@ io.on("connection", (socket: Socket) => {
     socket.to(data.room).emit("receive_message", data);
   });
 
-    // Notify others that a user is typing
-    socket.on("typing", (data: { room: string; username: string }) => {
+  // Notify others that a user is typing
+  socket.on("typing", (data: { room: string; username: string }) => {
     socket.to(data.room).emit("typing", data.username);
+  });
+
+  socket.on("leave_room", async (data: { room: string; username: string }) => {
+    const { room, username } = data;
+    socket.leave(room);
+    await roomService.removeMember(room, socket.data.userId);
+    const users = roomUsers.get(room);
+    if (users) {
+      users.delete(username);
+      if (users.size === 0) roomUsers.delete(room);
+      io.to(room).emit("user_list", Array.from(users));
+    }
+    socket.to(room).emit("receive_message", {
+      room,
+      id: "system",
+      author: "System",
+      message: `${username} has left the chat.`,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    });
   });
 
   // Clean up when a user disconnects
@@ -145,8 +165,11 @@ io.on("connection", (socket: Socket) => {
         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       });
 
+      roomService
+        .removeMember(room, socket.data.userId)
+        .catch((err) => console.error("Error removing member:", err));
       userMap.delete(socket.id);
-      
+
       const users = roomUsers.get(room);
       if (users) {
         users.delete(username);
