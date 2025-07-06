@@ -16,6 +16,17 @@ router.get('/', async (_req, res) => {
   }
 });
 
+// Retrieve rooms with their latest message
+router.get('/latest', async (_req, res) => {
+  try {
+    const rooms = await roomService.listRoomsWithLatest();
+    res.json(rooms);
+  } catch (err) {
+    console.error('Failed to list rooms with latest:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Create a new room
 router.post('/', async (req, res) => {
   const { name } = req.body;

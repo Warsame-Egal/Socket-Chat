@@ -20,4 +20,17 @@ export default class MessageRepository {
     );
     return result.rows;
   }
+  
+  // Get the most recent message for a room
+  async getLatestByRoom(room: string): Promise<Message | null> {
+    const result = await pool.query<Message>(
+      `SELECT m.id, m.room, m.author_id, m.content, m.sent_at
+       FROM messages m
+       WHERE m.room = $1
+       ORDER BY m.sent_at DESC
+       LIMIT 1`,
+      [room]
+    );
+    return result.rows[0] || null;
+  }
 }
