@@ -77,8 +77,7 @@ function App() {
             authenticated ? (
               <Navigate to="/chat" replace />
             ) : (
-              <div className="px-8 flex items-center justify-center bg-[url('/src/assets/chat.jpg')] bg-no-repeat bg-cover w-full h-screen">
-                <Auth onAuthSuccess={() => setAuthenticated(true)} />
+              <div className="px-8 flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-100 w-full h-screen">                <Auth onAuthSuccess={() => setAuthenticated(true)} />
               </div>
             )
           }

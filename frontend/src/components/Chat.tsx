@@ -93,7 +93,7 @@ const Chat = ({ socket, username, room, onLeave }: Props) => {
   }, [socket, room]);
 
   return (
-    <div className="w-full h-screen flex items-center justify-center px-4 sm:px-8">
+    <div className="w-full h-screen flex items-center justify-center px-4 sm:px-8 bg-gradient-to-br from-sky-50 to-blue-100">
       <div className="w-full max-w-3xl h-[90vh] bg-white text-black rounded-xl shadow-lg flex flex-col p-4 sm:p-6">
         {/* Header */}
         <div className="text-center font-bold text-xl border-b border-gray-300 pb-3 mb-3">

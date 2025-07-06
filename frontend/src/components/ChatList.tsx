@@ -40,15 +40,15 @@ const ChatList = ({ onSelect, activeRoom }: Props) => {
   }, []);
 
   return (
-    <div className="w-64 bg-gray-800 text-white h-screen p-4 overflow-y-auto">
+    <div className="w-full md:w-64 bg-gray-800 text-white md:h-screen p-4 overflow-y-auto flex-shrink-0">
       <h2 className="text-lg font-bold mb-4">Rooms</h2>
       <ul className="space-y-2">
         {rooms.map((room) => (
           <li
             key={room.id}
             onClick={() => onSelect(room.name)}
-            className={`cursor-pointer p-2 rounded ${
-              activeRoom === room.name ? "bg-blue-600" : "hover:bg-gray-700"
+            className={`cursor-pointer p-2 rounded transition-colors ${
+              activeRoom === room.name ? 'bg-blue-600' : 'hover:bg-gray-700'
             }`}
           >
             <div className="font-semibold">{room.name}</div>
