@@ -9,6 +9,7 @@ interface Props {
   socket: Socket;
   username: string;
   room: string;
+  onLeave: () => void;
 }
 
 // Shape of a message exchanged over the socket
@@ -20,7 +21,7 @@ interface Message {
   time: string;
 }
 
-const Chat = ({ socket, username, room }: Props) => {
+const Chat = ({ socket, username, room, onLeave }: Props) => {
   const [currentMessage, setCurrentMessage] = useState("");
   const [messageList, setMessageList] = useState<Message[]>([]);
 
@@ -45,6 +46,11 @@ const Chat = ({ socket, username, room }: Props) => {
     }
   };
 
+  const leaveRoom = () => {
+    socket.emit("leave_room", { room, username });
+    onLeave();
+  };
+
   // Listen for incoming messages
   useEffect(() => {
     socket.on("receive_message", (data: Message) => {
@@ -59,8 +65,16 @@ const Chat = ({ socket, username, room }: Props) => {
     <div className="w-full h-screen flex items-center justify-center px-4 sm:px-8">
       <div className="w-full max-w-3xl h-[90vh] bg-white text-black rounded-xl shadow-lg flex flex-col p-4 sm:p-6">
         {/* Header */}
-        <div className="text-center font-bold text-xl border-b border-gray-300 pb-3 mb-3">
-          Room: <span className="text-blue-600">{room}</span>
+        <div className="flex justify-between items-center font-bold text-xl border-b border-gray-300 pb-3 mb-3">
+          <div>
+            Room: <span className="text-blue-600">{room}</span>
+          </div>
+          <button
+            onClick={leaveRoom}
+            className="text-sm bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded-md"
+          >
+            Leave
+          </button>
         </div>
 
         {/* Messages */}

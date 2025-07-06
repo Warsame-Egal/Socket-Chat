@@ -11,6 +11,7 @@ import roomRoutes from "./routes/rooms";
 import authRoutes from "./routes/auth";
 import ChatService from "./services/ChatService";
 import RoomService from "./services/RoomService";
+import RedisRoomMembershipRepository from "./repositories/RedisRoomMembershipRepository";
 
 dotenv.config();
 
@@ -70,6 +71,7 @@ const userMap = new Map<string, { username: string; room: string }>();
 const roomUsers = new Map<string, Set<string>>();
 const chatService = new ChatService();
 const roomService = new RoomService();
+const membershipRepo = new RedisRoomMembershipRepository();
 
 // Handle a new client connection and register event listeners
 io.on("connection", (socket: Socket) => {
@@ -78,8 +80,8 @@ io.on("connection", (socket: Socket) => {
   // User is joining a chat room
   socket.on("join_room", (data: { room: string; username: string }) => {
     const { room, username } = data;
-        roomService
-      .createRoom(room)
+    roomService
+      .createRoom(room, socket.data.userId)
       .catch((err) => console.error("Error creating room:", err));
     socket.join(room);
     userMap.set(socket.id, { username, room });
@@ -88,6 +90,10 @@ io.on("connection", (socket: Socket) => {
     const users = roomUsers.get(room) || new Set<string>();
     users.add(username);
     roomUsers.set(room, users);
+
+    membershipRepo
+      .addUserToRoom(socket.data.userId, room)
+      .catch((err) => console.error("Failed to add membership", err));
 
     console.log(`User ${username} joined room: ${room}`);
 
@@ -127,8 +133,34 @@ io.on("connection", (socket: Socket) => {
   });
 
     // Notify others that a user is typing
-    socket.on("typing", (data: { room: string; username: string }) => {
+  socket.on("typing", (data: { room: string; username: string }) => {
     socket.to(data.room).emit("typing", data.username);
+  });
+
+  socket.on("leave_room", (data: { room: string; username: string }) => {
+    const { room, username } = data;
+    socket.leave(room);
+    membershipRepo
+      .removeUserFromRoom(socket.data.userId, room)
+      .catch((err) => console.error("Failed to remove membership", err));
+
+    socket.to(room).emit("receive_message", {
+      room,
+      id: "system",
+      author: "System",
+      message: `${username} has left the chat.`,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    });
+
+    const users = roomUsers.get(room);
+    if (users) {
+      users.delete(username);
+      io.to(room).emit("user_list", Array.from(users));
+    }
+
+    if (userMap.get(socket.id)?.room === room) {
+      userMap.delete(socket.id);
+    }
   });
 
   // Clean up when a user disconnects

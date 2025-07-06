@@ -30,4 +30,10 @@ export default class RedisMessageRepository {
     const entry = await client.zRange(`room:${roomId}`, -1, -1);
     return entry[0] ? (JSON.parse(entry[0]) as StoredMessage) : null;
   }
+
+  // Remove all messages from a room
+  async deleteByRoom(roomId: string): Promise<void> {
+    const client = await connectRedis();
+    await client.del(`room:${roomId}`);
+  }
 }

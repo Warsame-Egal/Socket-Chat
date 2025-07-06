@@ -57,6 +57,18 @@ function App() {
     }
   };
 
+  const leaveRoom = async () => {
+    if (socket) {
+      socket.emit("leave_room", { room, username });
+    }
+    await fetch(`${VITE_SERVER_URL}/rooms/${room}/leave`, {
+      method: "POST",
+      credentials: "include",
+    });
+    setShowChat(false);
+    setRoom("");
+  };
+
     if (!authenticated) {
     return (
       <div className="px-8 flex items-center justify-center bg-[url('/src/assets/chat.jpg')] bg-no-repeat bg-cover w-full h-screen">
@@ -102,7 +114,14 @@ function App() {
               </button>
             </div>
           ) : (
-            socket && <Chat socket={socket} username={username} room={room} />
+            socket && (
+              <Chat
+                socket={socket}
+                username={username}
+                room={room}
+                onLeave={leaveRoom}
+              />
+            )
           )}
         </div>
       </div>

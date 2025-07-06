@@ -4,10 +4,10 @@ import { Room } from '../models/Room';
 
 export default class RoomRepository {
   // Insert a new chat room and return it
-  async create(name: string): Promise<Room> {
+  async create(name: string, creatorId: number): Promise<Room> {
     const result = await pool.query<Room>(
-      'INSERT INTO rooms (name) VALUES ($1) RETURNING id, name, created_at',
-      [name]
+      'INSERT INTO rooms (name, creator_id) VALUES ($1, $2) RETURNING id, name, created_at, creator_id',
+      [name, creatorId]
     );
     return result.rows[0];
   }
@@ -15,8 +15,17 @@ export default class RoomRepository {
   // Find a room by its name
   async findByName(name: string): Promise<Room | null> {
     const result = await pool.query<Room>(
-      'SELECT id, name, created_at FROM rooms WHERE name = $1',
+      'SELECT id, name, created_at, creator_id FROM rooms WHERE name = $1',
       [name]
+    );
+    return result.rows[0] || null;
+  }
+
+  // Find a room by id
+  async findById(id: number): Promise<Room | null> {
+    const result = await pool.query<Room>(
+      'SELECT id, name, created_at, creator_id FROM rooms WHERE id = $1',
+      [id]
     );
     return result.rows[0] || null;
   }
@@ -24,7 +33,7 @@ export default class RoomRepository {
   // Return list of all rooms
   async list(): Promise<Room[]> {
     const result = await pool.query<Room>(
-      'SELECT id, name, created_at FROM rooms ORDER BY created_at ASC'
+      'SELECT id, name, created_at, creator_id FROM rooms ORDER BY created_at ASC'
     );
     return result.rows;
   }

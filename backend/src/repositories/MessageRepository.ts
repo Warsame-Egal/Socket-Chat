@@ -33,4 +33,9 @@ export default class MessageRepository {
     );
     return result.rows[0] || null;
   }
+
+  // Delete all messages for a room
+  async deleteByRoom(room: string): Promise<void> {
+    await pool.query('DELETE FROM messages WHERE room = $1', [room]);
+  }
 }
