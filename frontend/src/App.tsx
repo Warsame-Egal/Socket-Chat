@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { BrowserRouter as Router, Routes, Route, Navigate, useParams, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Auth from "./components/Auth";
-import Layout from "./components/layout/Layout";
-import ChatWindow from "./components/layout/ChatWindow";
+import ChatRoute from "./routes/ChatRoute";
 
 const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
 
@@ -54,30 +53,7 @@ function App() {
     }
   };
 
-  const ChatRoute = () => {
-    const { roomId } = useParams();
-    const navigate = useNavigate();
 
-    useEffect(() => {
-      if (roomId) {
-        setRoom(roomId);
-      }
-    }, [roomId]);
-
-    return (
-      <Layout onLogout={logout} onSelectRoom={(name) => handleSelectRoom(name, navigate)} activeRoom={room}>
-        <ChatWindow
-          socket={socket}
-          username={username}
-          room={room}
-          setUsername={setUsername}
-          setRoom={setRoom}
-          showChat={showChat}
-          joinRoom={() => joinRoom(navigate)}
-        />
-      </Layout>
-    );
-  };
 
   return (
     <Router>
@@ -96,12 +72,42 @@ function App() {
         />
         <Route
           path="/chat/:roomId"
-          element={authenticated ? <ChatRoute /> : <Navigate to="/login" replace />}
-        />
+          element={
+            authenticated ? (
+              <ChatRoute
+                socket={socket}
+                username={username}
+                room={room}
+                setUsername={setUsername}
+                setRoom={setRoom}
+                showChat={showChat}
+                joinRoom={joinRoom}
+                logout={logout}
+                handleSelectRoom={handleSelectRoom}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }        />
         <Route
           path="/chat"
-          element={authenticated ? <ChatRoute /> : <Navigate to="/login" replace />}
-        />
+          element={
+            authenticated ? (
+              <ChatRoute
+                socket={socket}
+                username={username}
+                room={room}
+                setUsername={setUsername}
+                setRoom={setRoom}
+                showChat={showChat}
+                joinRoom={joinRoom}
+                logout={logout}
+                handleSelectRoom={handleSelectRoom}
+              />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }        />
         <Route
           path="*"
           element={<Navigate to={authenticated ? "/chat" : "/login"} replace />}
