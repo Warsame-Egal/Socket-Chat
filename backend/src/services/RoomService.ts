@@ -1,5 +1,6 @@
 // Business logic for managing chat rooms
 import RoomRepository from '../repositories/RoomRepository';
+import ChatService from './ChatService';
 
 export default class RoomService {
   constructor(private roomRepo = new RoomRepository()) {}
@@ -16,6 +17,17 @@ export default class RoomService {
   // Return all existing rooms
   listRooms() {
     return this.roomRepo.list();
+  }
+
+  // Return rooms with their latest message
+  async listRoomsWithLatest(chatService = new ChatService()) {
+    const rooms = await this.roomRepo.list();
+    const result = [] as any[];
+    for (const room of rooms) {
+      const latest = await chatService.getLatestMessage(room.name);
+      result.push({ ...room, latestMessage: latest });
+    }
+    return result;
   }
 
   // Permanently remove a room

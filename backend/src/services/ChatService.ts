@@ -53,4 +53,34 @@ export default class ChatService {
     }
     return transformed;
   }
+  
+  // Retrieve the most recent message from a room
+  async getLatestMessage(room: string) {
+    const redisMsg = await this.redisMessageRepo.getLatestByRoom(room);
+    if (redisMsg) {
+      let user = await this.redisUserRepo.findById(redisMsg.from);
+      if (!user) {
+        user = await this.userRepo.findById(redisMsg.from);
+        if (user) await this.redisUserRepo.cacheUser(user);
+      }
+      return {
+        message: redisMsg.message,
+        time: new Date(redisMsg.date),
+        author: user ? user.username : 'Unknown',
+      };
+    }
+
+    const dbMsg = await this.messageRepo.getLatestByRoom(room);
+    if (!dbMsg) return null;
+    let user = await this.redisUserRepo.findById(dbMsg.author_id);
+    if (!user) {
+      user = await this.userRepo.findById(dbMsg.author_id);
+      if (user) await this.redisUserRepo.cacheUser(user);
+    }
+    return {
+      message: dbMsg.content,
+      time: dbMsg.sent_at,
+      author: user ? user.username : 'Unknown',
+    };
+  }
 }

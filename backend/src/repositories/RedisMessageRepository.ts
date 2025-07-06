@@ -23,4 +23,11 @@ export default class RedisMessageRepository {
     const entries = await client.zRange(`room:${roomId}`, -limit, -1);
     return entries.map((e) => JSON.parse(e) as StoredMessage);
   }
+  
+  // Retrieve the latest message from a room
+  async getLatestByRoom(roomId: string): Promise<StoredMessage | null> {
+    const client = await connectRedis();
+    const entry = await client.zRange(`room:${roomId}`, -1, -1);
+    return entry[0] ? (JSON.parse(entry[0]) as StoredMessage) : null;
+  }
 }
