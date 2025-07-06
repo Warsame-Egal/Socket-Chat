@@ -96,20 +96,21 @@ http://localhost:5173
 
 ---
 
-## Project Structure
+## Docker Compose
+
+You can build and start the entire stack using Docker Compose. This will launch
+Postgres, Redis, the backend API and the frontend server.
+
+```bash
+docker-compose up --build
+```
+
+Once running, access the app at:
 
 ```
-Socket-Chat/
-├── backend/
-│   ├── src/
-│   │   ├── index.ts
-│   │   ├── db.ts
-│   │   └── ...
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── App.tsx
-│   │   ├── components/
-│   │   └── ...
-│   └── package.json
+http://localhost:5173
 ```
+
+The backend API will be available on [http://localhost:5000](http://localhost:5000).
+Docker Compose sets default credentials for Postgres and Redis as defined in
+`docker-compose.yml`. Adjust the environment variables there if needed.
