@@ -1,13 +1,8 @@
 # Socket Chat
 
-A real-time chat application built with Node.js, Express, TypeScript, Socket.IO, Redis, and React. Messages are transmitted using WebSockets. PostgreSQL is used for authentication and storage.
-
-## Features
-
-- Real-time messaging with Socket.IO
-- Responsive front-end using React and Tailwind CSS
-- Backend built with Node.js Express and TypeScript
-- Redis-backed caching for rooms, users and chat history
+A real-time chat application built with Node.js, Express, TypeScript, Socket.IO, Redis, and React.
+Messages are transmitted using WebSockets, with Redis used for temporary caching.
+PostgreSQL stores user data and chat history, while JWT (JSON Web Tokens) is used for secure user authentication.
 
 ---
 
