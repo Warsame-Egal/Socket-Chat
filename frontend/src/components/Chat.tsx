@@ -9,6 +9,7 @@ interface Props {
   socket: Socket;
   username: string;
   room: string;
+  onLeave: () => void;
 }
 
 // Shape of a message exchanged over the socket
@@ -20,9 +21,17 @@ interface Message {
   time: string;
 }
 
-const Chat = ({ socket, username, room }: Props) => {
+interface HistoryMessage {
+  author: string;
+  message: string;
+  time: string | Date;
+}
+
+const Chat = ({ socket, username, room, onLeave }: Props) => {
   const [currentMessage, setCurrentMessage] = useState("");
   const [messageList, setMessageList] = useState<Message[]>([]);
+  const [userList, setUserList] = useState<string[]>([]);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   // Emit the current message to the server
   const sendMessage = async () => {
@@ -50,17 +59,54 @@ const Chat = ({ socket, username, room }: Props) => {
     socket.on("receive_message", (data: Message) => {
       setMessageList((prev) => [...prev, data]);
     });
+    const historyHandler = (history: HistoryMessage[]) => {
+      const formatted = history.map((m) => ({
+        room,
+        id: undefined,
+        author: m.author,
+        message: m.message,
+        time: new Date(m.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      }));
+      setMessageList(formatted);
+    };
+    const userListHandler = (list: string[]) => {
+      setUserList(list);
+    };
+    const typingHandler = (name: string) => {
+      setTypingUsers((prev) => {
+        if (prev.includes(name)) return prev;
+        return [...prev, name];
+      });
+      setTimeout(() => {
+        setTypingUsers((prev) => prev.filter((u) => u !== name));
+      }, 3000);
+    };
+    socket.on("chat_history", historyHandler);
+    socket.on("user_list", userListHandler);
+    socket.on("typing", typingHandler);
     return () => {
       socket.off("receive_message");
+      socket.off("chat_history", historyHandler);
+      socket.off("user_list", userListHandler);
+      socket.off("typing", typingHandler);
     };
-  }, [socket]);
+  }, [socket, room]);
 
   return (
-    <div className="w-full h-screen flex items-center justify-center px-4 sm:px-8">
+    <div className="w-full h-screen flex items-center justify-center px-4 sm:px-8 bg-gradient-to-br from-sky-50 to-blue-100">
       <div className="w-full max-w-3xl h-[90vh] bg-white text-black rounded-xl shadow-lg flex flex-col p-4 sm:p-6">
         {/* Header */}
         <div className="text-center font-bold text-xl border-b border-gray-300 pb-3 mb-3">
           Room: <span className="text-blue-600">{room}</span>
+                    <button
+            onClick={onLeave}
+            className="ml-2 text-sm text-red-600 underline"
+          >
+            Leave
+          </button>
+          <div className="text-sm font-normal text-gray-500 mt-1">
+            Users: {userList.join(', ')}
+          </div>
         </div>
 
         {/* Messages */}
@@ -111,6 +157,11 @@ const Chat = ({ socket, username, room }: Props) => {
 
           </div>
         </ScrollToBottom>
+        {typingUsers.length > 0 && (
+          <div className="text-xs text-gray-500 mb-1 h-4">
+            {typingUsers.join(', ')} {typingUsers.length > 1 ? 'are' : 'is'} typing...
+          </div>
+        )}
 
         {/* Input */}
         <div className="flex items-center mt-4 bg-gray-100 p-3 rounded-md space-x-2 border border-gray-300">
@@ -118,7 +169,10 @@ const Chat = ({ socket, username, room }: Props) => {
             type="text"
             placeholder="Type your message..."
             value={currentMessage}
-            onChange={(e) => setCurrentMessage(e.target.value)}
+            onChange={(e) => {
+              setCurrentMessage(e.target.value);
+              socket.emit("typing", { room, username });
+            }}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             className="flex-1 bg-transparent outline-none text-black placeholder-gray-500"
           />

@@ -1,17 +1,27 @@
-// Business logic for managing chat rooms
+// Logic for managing chat rooms
 import RoomRepository from '../repositories/RoomRepository';
 import ChatService from './ChatService';
+import MembershipRepository from '../repositories/MembershipRepository';
+import MessageRepository from '../repositories/MessageRepository';
+import RedisMessageRepository from '../repositories/RedisMessageRepository';
 
 export default class RoomService {
-  constructor(private roomRepo = new RoomRepository()) {}
+  constructor(
+    private roomRepo = new RoomRepository(),
+    private membershipRepo = new MembershipRepository(),
+    private messageRepo = new MessageRepository(),
+    private redisMessageRepo = new RedisMessageRepository()
+  ) {}
 
   // Create a room if it doesn't already exist
-  async createRoom(name: string) {
+  async createRoom(name: string, creatorId: number) {
     const existing = await this.roomRepo.findByName(name);
     if (existing) {
       throw new Error('Room already exists');
     }
-    return this.roomRepo.create(name);
+    const room = await this.roomRepo.create(name, creatorId);
+    await this.membershipRepo.add(creatorId, room.id);
+    return room;
   }
 
   // Return all existing rooms
@@ -31,7 +41,31 @@ export default class RoomService {
   }
 
   // Permanently remove a room
-  deleteRoom(id: number) {
-    return this.roomRepo.delete(id);
+  async deleteRoom(id: number, requesterId: number) {
+    const room = await this.roomRepo.findById(id);
+    if (!room) throw new Error('Room not found');
+    if (room.creator_id !== requesterId) {
+      throw new Error('Not owner');
+    }
+    await Promise.all([
+      this.membershipRepo.removeAllForRoom(id),
+      this.messageRepo.deleteByRoom(room.name),
+      this.redisMessageRepo.deleteByRoom(room.name),
+      this.roomRepo.delete(id),
+    ]);
+  }
+
+  async addMember(roomName: string, userId: number) {
+    const room = await this.roomRepo.findByName(roomName);
+    if (room) {
+      await this.membershipRepo.add(userId, room.id);
+    }
+  }
+
+  async removeMember(roomName: string, userId: number) {
+    const room = await this.roomRepo.findByName(roomName);
+    if (room) {
+      await this.membershipRepo.remove(userId, room.id);
+    }
   }
 }
