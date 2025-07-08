@@ -37,7 +37,7 @@ const ChatList = ({ onSelect, activeRoom }: Props) => {
       })
       .then((data) => setRooms(data))
       .catch((err) => console.error("Failed to load rooms", err));
-  }, []);
+  }, [activeRoom]);
 
   return (
     <div className="w-full md:w-64 bg-gray-800 text-white md:h-screen p-4 overflow-y-auto flex-shrink-0">

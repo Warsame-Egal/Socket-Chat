@@ -12,4 +12,4 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 coverage/
-chat-app-readme.md
+chat-app.md
