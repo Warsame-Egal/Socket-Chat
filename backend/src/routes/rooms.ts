@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import RoomService from '../services/RoomService';
 import { verifyToken, AuthRequest } from '../middleware/auth';
+import logger from '../logger';
 
 const router = Router();
 const roomService = new RoomService();
@@ -12,7 +13,7 @@ router.get('/', verifyToken, async (_req, res) => {
     const rooms = await roomService.listRooms();
     res.json(rooms);
   } catch (err) {
-    console.error('Failed to list rooms:', err);
+    logger.error(`Failed to list rooms: ${err}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -23,7 +24,7 @@ router.get('/latest', verifyToken, async (_req, res) => {
     const rooms = await roomService.listRoomsWithLatest();
     res.json(rooms);
   } catch (err) {
-    console.error('Failed to list rooms with latest:', err);
+    logger.error(`Failed to list rooms with latest: ${err}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -42,7 +43,7 @@ router.post('/', verifyToken, async (req: AuthRequest, res) => {
     if (err.message === 'Room already exists') {
       res.status(409).json({ message: err.message });
     } else {
-      console.error('Failed to create room:', err);
+      logger.error(`Failed to create room: ${err}`);
       res.status(500).json({ message: 'Server error' });
     }
   }
@@ -59,7 +60,7 @@ router.delete('/:id', verifyToken, async (req: AuthRequest, res) => {
     await roomService.deleteRoom(id, req.userId!);
     res.sendStatus(204);
   } catch (err) {
-    console.error('Failed to delete room:', err);
+    logger.error(`Failed to delete room: ${err}`);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -71,7 +72,7 @@ router.post('/:name/leave', verifyToken, async (req: AuthRequest, res) => {
     await roomService.removeMember(roomName, req.userId!);
     res.sendStatus(204);
   } catch (err) {
-    console.error('Failed to leave room:', err);
+    logger.error(`Failed to leave room: ${err}`);
     res.status(500).json({ message: 'Server error' });
   }
 });

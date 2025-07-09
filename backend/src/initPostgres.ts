@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import pool from './db';
 import bcrypt from 'bcrypt';
 import { connectRedis } from './redisClient';
+import logger from './logger';
 
 dotenv.config();
 
@@ -25,7 +26,7 @@ async function init() {
   for (const { username, password } of demoUsers) {
     const userKey = await redis.get(`username:${username}`);
     if (!userKey) {
-      console.warn(`User ${username} not found in Redis, skipping`);
+      logger.warn(`User ${username} not found in Redis, skipping`);
       continue;
     }
     const id = parseInt(userKey.split(':')[1], 10);
@@ -40,11 +41,11 @@ async function init() {
     "SELECT setval(pg_get_serial_sequence('users','id'), (SELECT MAX(id) FROM users))"
   );
 
-  console.log('Postgres initialization complete');
+  logger.info('Postgres initialization complete');
   await redis.quit();
   await pool.end();
 }
 
 init().catch((err) => {
-  console.error('Postgres initialization failed', err);
+  logger.error(`Postgres initialization failed: ${err}`);
 });

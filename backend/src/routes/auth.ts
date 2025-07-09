@@ -1,6 +1,7 @@
 // Express routes related to authentication
 import { Router } from 'express';
 import AuthService from '../services/AuthService';
+import logger from '../logger';
 
 const router = Router();
 const authService = new AuthService();
@@ -20,7 +21,7 @@ router.post('/register', async (req, res) => {
     if (err.message === 'Username already taken') {
       res.status(409).json({ message: err.message });
     } else {
-      console.error('Registration failed:', err);
+      logger.error(`Registration failed: ${err}`);
       res.status(500).json({ message: 'Server error' });
     }
   }

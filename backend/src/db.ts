@@ -1,6 +1,7 @@
 // PostgreSQL connection pool used throughout the backend
 import { Pool } from "pg";
 import dotenv from "dotenv";
+import logger from "./logger";
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ const pool = new Pool({
 
 // Log a message once the connection is established
 pool.on("connect", () => {
-  console.log("Connected to PostgreSQL database");
+  logger.info("Connected to PostgreSQL database");
 });
 
 export default pool;

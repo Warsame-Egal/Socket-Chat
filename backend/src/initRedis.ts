@@ -1,5 +1,6 @@
 import { connectRedis } from './redisClient';
 import bcrypt from 'bcrypt';
+import logger from './logger';
 
 interface DemoUser {
   username: string;
@@ -64,10 +65,10 @@ async function init() {
       await addMessage('0', userIds[0], 'Welcome to the general room');
     }
   }
-  console.log('Redis initialization complete');
+  logger.info('Redis initialization complete');
   await client.quit();
 }
 
 init().catch((err) => {
-  console.error('Redis initialization failed', err);
+  logger.error(`Redis initialization failed: ${err}`);
 });

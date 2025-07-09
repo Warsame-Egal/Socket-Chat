@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import logger from "../logger";
 
 const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
 
@@ -37,7 +38,7 @@ const ChatList = ({ onSelect, activeRoom, open }: Props) => {
         return res.json();
       })
       .then((data) => setRooms(data))
-      .catch((err) => console.error("Failed to load rooms", err));
+      .catch((err) => logger.error("Failed to load rooms", err));
   }, [activeRoom]);
 
   return (

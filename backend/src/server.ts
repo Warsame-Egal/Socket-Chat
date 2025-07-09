@@ -11,6 +11,7 @@ import roomRoutes from "./routes/rooms";
 import authRoutes from "./routes/auth";
 import ChatService from "./services/ChatService";
 import RoomService from "./services/RoomService";
+import logger from "./logger";
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
 // Middleware
-// ----- Express middleware configuration -----
+// Express middleware configuration
 app.use(cors({
   origin: CORS_ORIGIN,
   credentials: true,
@@ -50,7 +51,7 @@ const io = new Server(server, {
 // Intercept socket connections and validate JWT tokens
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
-  console.log("Received token:", token);
+  logger.info(`Received token: ${token}`);
 
    if (!token) {
     return next(new Error("Token missing"));
@@ -61,7 +62,7 @@ io.use((socket, next) => {
     socket.data.userId = payload.userId;
     next();
   } catch (err) {
-    console.error("Socket auth failed:", err);
+    logger.error(`Socket auth failed: ${err}`);
     next(new Error("Unauthorized"));
   }
 });
@@ -73,14 +74,14 @@ const roomService = new RoomService();
 
 // Handle a new client connection and register event listeners
 io.on("connection", (socket: Socket) => {
-  console.log(`User Connected: ${socket.id}`);
+  logger.info(`User Connected: ${socket.id}`);
 
   // User is joining a chat room
   socket.on("join_room", async (data: { room: string; username: string }) => {
     const { room, username } = data;
     roomService
       .createRoom(room, socket.data.userId)
-      .catch((err) => console.error("Error creating room:", err));
+      .catch((err) => logger.error(`Error creating room: ${err}`));
     await roomService.addMember(room, socket.data.userId);
     socket.join(room);
     userMap.set(socket.id, { username, room });
@@ -90,7 +91,7 @@ io.on("connection", (socket: Socket) => {
     users.add(username);
     roomUsers.set(room, users);
 
-    console.log(`User ${username} joined room: ${room}`);
+    logger.info(`User ${username} joined room: ${room}`);
 
     // Notify room
     socket.to(room).emit("receive_message", {
@@ -107,7 +108,7 @@ io.on("connection", (socket: Socket) => {
       .then((history) => {
         socket.emit("chat_history", history);
       })
-      .catch((err) => console.error("Error loading chat history:", err));
+      .catch((err) => logger.error(`Error loading chat history: ${err}`));
       
     io.to(room).emit("user_list", Array.from(users));
   });
@@ -122,7 +123,7 @@ io.on("connection", (socket: Socket) => {
   }) => {
     chatService
       .saveMessage(data.room, socket.data.userId, data.message)
-      .catch((err) => console.error("Error saving message:", err));
+      .catch((err) => logger.error(`Error saving message: ${err}`));
 
     socket.to(data.room).emit("receive_message", data);
   });
@@ -167,7 +168,7 @@ io.on("connection", (socket: Socket) => {
 
       roomService
         .removeMember(room, socket.data.userId)
-        .catch((err) => console.error("Error removing member:", err));
+        .catch((err) => logger.error(`Error removing member: ${err}`));
       userMap.delete(socket.id);
 
       const users = roomUsers.get(room);
@@ -180,11 +181,11 @@ io.on("connection", (socket: Socket) => {
       }
     }
 
-    console.log(`User Disconnected: ${socket.id}`);
+    logger.info(`User Disconnected: ${socket.id}`);
   });
 });
 
 // Start the HTTP/WebSocket server
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });
