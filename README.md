@@ -1,8 +1,17 @@
 # Socket Chat
 
-A real-time chat application built with Node.js, Express, TypeScript, Socket.IO, Redis, and React.
+A chat application built with Node.js, Express, TypeScript, Socket.IO, Redis, and React.
 Messages are transmitted using WebSockets, with Redis used for temporary caching.
 PostgreSQL stores user data and chat history, while JWT (JSON Web Tokens) is used for secure user authentication.
+
+## Architecture
+
+The backend uses the Repository pattern to separate data access from business
+logic. Redis-specific repositories like `RedisUserRepository` and
+`RedisMessageRepository` handle caching and real-time operations, while
+`UserRepository`, `MessageRepository`, and others store persistent data in
+PostgreSQL. Higher-level services such as `ChatService` compose these
+repositories, keeping the codebase modular, testable and simple to extend.
 
 ---
 
@@ -49,6 +58,12 @@ DEMO_USERS=luffy:luffypass,zoro:zoropass
 
 ```bash
 npm run init-redis
+```
+
+#### Initialize demo users in Postgres:
+
+```bash
+npm run init-db
 ```
 
 #### Start the backend server:
