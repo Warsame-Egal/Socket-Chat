@@ -18,9 +18,10 @@ interface Room {
 interface Props {
   onSelect: (room: string) => void;
   activeRoom: string;
+  open: boolean;
 }
 
-const ChatList = ({ onSelect, activeRoom }: Props) => {
+const ChatList = ({ onSelect, activeRoom, open }: Props) => {
   const [rooms, setRooms] = useState<Room[]>([]);
 
   useEffect(() => {
@@ -40,7 +41,9 @@ const ChatList = ({ onSelect, activeRoom }: Props) => {
   }, [activeRoom]);
 
   return (
-    <div className="w-full md:w-64 bg-gray-800 text-white md:h-screen p-4 overflow-y-auto flex-shrink-0">
+    <div
+      className={`w-full md:w-64 bg-gray-800 text-white md:h-screen p-4 overflow-y-auto flex-shrink-0 transform transition-transform duration-300 md:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
+    >
       <h2 className="text-lg font-bold mb-4">Rooms</h2>
       <ul className="space-y-2">
         {rooms.map((room) => (
