@@ -24,7 +24,7 @@ const ChatWindow = ({
 }: Props) => {
   return !showChat ? (
     <div className="w-full max-w-sm flex flex-col justify-center items-center text-center space-y-4 bg-white text-gray-800 rounded-xl py-8 px-6 shadow-lg">
-      <h1 className="text-3xl font-bold mb-4">Welcome to Socket-Chat</h1>
+      <h1 className="text-3xl font-bold mb-4">Socket-Chat</h1>
       <input
         type="text"
         placeholder="Your nickname"
