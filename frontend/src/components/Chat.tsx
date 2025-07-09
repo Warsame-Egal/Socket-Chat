@@ -133,7 +133,7 @@ const Chat = ({ socket, username, room, onLeave }: Props) => {
                   } w-full`}
                 >
                   <div
-                    className={`px-4 py-2 rounded-xl shadow max-w-[80%] min-w-[100px] whitespace-pre-wrap break-words ${
+                    className={`px-4 py-2 rounded-xl shadow max-w-[80%] min-w-[100px] whitespace-pre-wrap break-words animate-fade-in ${
                       isOwnMessage
                         ? "bg-blue-600 text-white rounded-br-sm self-end"
                         : "bg-gray-200 text-black rounded-bl-sm self-start"
@@ -158,7 +158,7 @@ const Chat = ({ socket, username, room, onLeave }: Props) => {
           </div>
         </ScrollToBottom>
         {typingUsers.length > 0 && (
-          <div className="text-xs text-gray-500 mb-1 h-4">
+          <div className="text-xs text-gray-500 mb-1 h-4 animate-pulse">
             {typingUsers.join(', ')} {typingUsers.length > 1 ? 'are' : 'is'} typing...
           </div>
         )}
