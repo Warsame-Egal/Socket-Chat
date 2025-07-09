@@ -7,7 +7,7 @@ interface Props {
 
 const Header = ({ onLogout, onToggleSidebar }: Props) => {
   return (
-    <header className="absolute top-4 left-4 right-4 flex items-center justify-between">
+    <header className="absolute top-4 right-4 right-4 flex items-center justify-between z-20">
       <button onClick={onToggleSidebar} className="md:hidden p-2 text-black">
         <FiMenu className="w-6 h-6" />
       </button>

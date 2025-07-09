@@ -3,12 +3,23 @@ import { io, Socket } from "socket.io-client";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Auth from "./components/Auth";
 import ChatRoute from "./routes/ChatRoute";
+import { getTokenExpiration } from "./token";
 
 const VITE_SERVER_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
 
 function App() {
-  const [authenticated, setAuthenticated] = useState<boolean>(!!localStorage.getItem("token"));
+  const [authenticated, setAuthenticated] = useState<boolean>(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return false;
+    const exp = getTokenExpiration(token);
+    if (!exp || Date.now() >= exp) {
+      localStorage.removeItem("token");
+      return false;
+    }
+    return true;
+  });
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [logoutTimer, setLogoutTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [username, setUsername] = useState("");
   const [room, setRoom] = useState("");
   const [showChat, setShowChat] = useState(false);
@@ -41,6 +52,32 @@ function App() {
   };
 
   useEffect(() => {
+    if (!authenticated) {
+      if (logoutTimer) {
+        clearTimeout(logoutTimer);
+        setLogoutTimer(null);
+      }
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      logout();
+      return;
+    }
+
+    const exp = getTokenExpiration(token);
+    if (!exp || Date.now() >= exp) {
+      logout();
+      return;
+    }
+
+    const timer = setTimeout(logout, exp - Date.now());
+    setLogoutTimer(timer);
+    return () => clearTimeout(timer);
+  }, [authenticated]);
+
+  useEffect(() => {
     if (authenticated) {
       const token = localStorage.getItem("token") || "";
       const newSocket = io(VITE_SERVER_URL, { auth: { token } });
@@ -65,8 +102,6 @@ function App() {
       handleSelectRoom(room, navigate);
     }
   };
-
-
 
   return (
     <Router>
